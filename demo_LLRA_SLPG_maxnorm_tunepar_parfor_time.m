@@ -18,18 +18,7 @@ R=importdata([img_name '_corrected.mat']);
 gt=importdata([img_name '_gt.mat']);
 R=double(R);
 [m,n,d]=size(R);
-indexes_v=[1:m*n];
-gt_v=reshape(gt,[m*n 1]);
-zeros_index=find(gt_v==0);
-gt_v(zeros_index)=[];
-indexes_v(zeros_index)=[];
-GroundT(1:length(indexes_v),1)=indexes_v;
-GroundT(1:length(indexes_v),2)=gt_v;
 
-C=max(gt(:));
-
-
-flag_select=1; %%set as 1: select the build graph with superpixel
 lambda=par.lambda;
 beta = par.beta;
 par.sigma=1.0;
@@ -55,10 +44,9 @@ for cur=1:num_Pixel
     sub_cluster_n(cur)=size(sub_I{cur},1);
 end
 %% save path setting
-if flag_select==1
-	save_path=[img_name 'SP' num2str(num_Pixel) '_results_feature_LLRA_SLPG_maxnorm_parfor_time/' ];
-	save_path2=[img_name 'SP' num2str(num_Pixel) 'SVM_results_LLRA_SLPG_maxnorm_parfor_time/' 'per_C' num2str(per_ratio) '/' 'lambda' num2str(lambda) 'beta' num2str(beta) 'k' num2str(par.k) '/' ];
-end
+save_path=[img_name 'SP' num2str(num_Pixel) '_results_feature_LLRA_SLPG_maxnorm_parfor_time/' ];
+save_path2=[img_name 'SP' num2str(num_Pixel) 'SVM_results_LLRA_SLPG_maxnorm_parfor_time/' 'per_C' num2str(per_ratio) '/' 'lambda' num2str(lambda) 'beta' num2str(beta) 'k' num2str(par.k) '/' ];
+
 if ~exist(save_path,'dir')
     mkdir(save_path);
 end
@@ -81,26 +69,21 @@ para.rho=rho;
 para.maxtau=maxtau;
 para.DEBUG=1;
 L=[];E=[];
-if flag_select==1
-	res_file_name1= [img_name 'SP' num2str(num_Pixel) 'lambda' num2str(lambda) 'beta' num2str(beta) 'k' num2str(par.k) '_maxnorm_parfor_time.mat'];
-	save_feature_file=[img_name 'SP' num2str(num_Pixel) 'sigma' num2str(par.sigma) 'k' num2str(par.k) '_maxnorm_parfor_time.mat'];
-end
+%% file name setting
+res_file_name1= [img_name 'SP' num2str(num_Pixel) 'lambda' num2str(lambda) 'beta' num2str(beta) 'k' num2str(par.k) '_maxnorm_parfor_time.mat'];
+save_feature_file=[img_name 'SP' num2str(num_Pixel) 'sigma' num2str(par.sigma) 'k' num2str(par.k) '_maxnorm_parfor_time.mat'];
 
 
 if ~exist([save_path save_feature_file])
-	if flag_select==1
-		[G1,D1,W_sparse1,usedtime]=construct_graph_parfor(X',sub_cluster_n,position_2D,par,num_Pixel);
-		save([save_path save_feature_file], 'G1','D1','W_sparse1','usedtime');
-	end
+	[G1,D1,W_sparse1,usedtime]=construct_graph_parfor(X',sub_cluster_n,position_2D,par,num_Pixel);
+	save([save_path save_feature_file], 'G1','D1','W_sparse1','usedtime');
 else
 	load([save_path save_feature_file]);
 end
 time_end2=toc(time_start);
 
 if ~exist([save_path res_file_name1])
-	if flag_select==1
-		[L,E,Li,Ei,Xi,conv_iter,obj2]=LLRA_SLPG(X',sub_cluster_n,G1,para,num_Pixel);
-	end
+	[L,E,Li,Ei,Xi,conv_iter,obj2]=LLRA_SLPG(X',sub_cluster_n,G1,para,num_Pixel);
     
 	%% remap the low rank L to the original postition, then we get the low ranked 2D data map L_spe_m for the original data
 
@@ -110,9 +93,8 @@ if ~exist([save_path res_file_name1])
         L_spe_m(position_2D{cur},:)=L_trans((sum(sub_cluster_n(1:cur-1))+1:sum(sub_cluster_n(1:cur))),:);
     end
 	%% save feature file
-	if flag_select==1
-		save([save_path res_file_name1],'Li','Ei','conv_iter','obj2','L','E','L_spe_m','par','para','G1','D1','W_sparse1','time_end1','time_end2');
-	end
+	save([save_path res_file_name1],'Li','Ei','conv_iter','obj2','L','E','L_spe_m','par','para','G1','D1','W_sparse1','time_end1','time_end2');
+	
 else
     load([save_path res_file_name1]);
 
@@ -124,9 +106,9 @@ L_spe_m=reshape(L_spe_m,[m n d]);
 
 [res,accracy_SVM1,TPR_SVM1,Kappa_SVM1,accracy_SVM2,TPR_SVM2,Kappa_SVM2,...
 Predict_SVM1,Predict_SVM2,time_result] = my_Classification_V2_CK_ratio_multiple_iters_time(R,L_spe_m,gt,random_iters,img_name,per_ratio);
-if flag_select==1
-	res_file_name2= [img_name 'lambda' num2str(lambda) 'beta' num2str(beta) 'k' num2str(par.k) 'per_C' num2str(per_ratio) '_maxnorm_parfor_time.mat'];	
-end	
+
+res_file_name2= [img_name 'lambda' num2str(lambda) 'beta' num2str(beta) 'k' num2str(par.k) 'per_C' num2str(per_ratio) '_maxnorm_parfor_time.mat'];	
+	
 time_end4=toc(time_start);
 																													  
 save([save_path2 res_file_name2],'res','accracy_SVM1','TPR_SVM1','Kappa_SVM1','accracy_SVM2','TPR_SVM2','Kappa_SVM2',...
