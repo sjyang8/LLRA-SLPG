@@ -9,7 +9,8 @@ The package includes the MATLAB code of the LLRA-SLPG algorithm in paper "Local 
 1)  Get Started
 For LLRA-SLPG,  you can call the "Call_LLRA_SLPG_indian_maxnorm_tunepar_time" function to run the algorithm for Indian_pines dataset. After above procedure, you can see the on-screen instructions for showing the result, such as 
 “average performance for 10 times: OA(mean)=*,AA(mean)=*,Kappa(mean)=*". 
-“average time for 10 times (seconds): *”.
+“average time for 10 times (seconds): *”. (Hint: For saving time, when you test time for big data, you can set the parameter para.DEBUG=0
+in the file "demo_LLRA_SLPG_maxnorm_tunepar_parfor_time".)
 2). Details
 
 For LLRA-SLPG,  the "Call_LLRA_SLPG_indian_maxnorm_tunepar_time" will automatically create a new folder for saving the detailed results,  i.e. "Indian_pinesSP64SVM_results_LLRA_SLPG_maxnorm_parfor_time/per_C0.05/lambda0.1beta50k1/". In such folder, 
